@@ -1,6 +1,9 @@
+mod cli;
 mod front_matter;
 
+use crate::cli::{Cli, Commands};
 use crate::front_matter::get_front_matter;
+use clap::Parser;
 use handlebars::Handlebars;
 use log::debug;
 use serde::Serialize;
@@ -63,27 +66,32 @@ fn convert_directory(reg: &Handlebars, root: &Path, input: &Path, out: &Path) {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let mut reg: Handlebars = Handlebars::new();
     env_logger::init();
+    let cli = Cli::parse();
 
-    let output_directory = Path::new("_site");
-    let root = Path::new("data");
+    match cli.command {
+        None => {}
+        Some(Commands::Build { input, output }) => {
+            let mut reg: Handlebars = Handlebars::new();
+            let output_directory = output.as_path();
 
-    let pages_path = root.join("pages");
-    let layouts_path = root.join("layouts");
+            let pages_path = input.join("pages");
+            let layouts_path = input.join("layouts");
 
-    let pages = pages_path.as_path();
-    let layouts = layouts_path.as_path();
+            let pages = pages_path.as_path();
+            let layouts = layouts_path.as_path();
 
-    load_layouts(&mut reg, layouts);
+            load_layouts(&mut reg, layouts);
 
-    if !output_directory.exists() {
-        std::fs::create_dir(output_directory).expect("Cannot create output directory.");
-    } else if !output_directory.is_dir() {
-        panic!("`_site` is not a directory.")
+            if !output_directory.exists() {
+                std::fs::create_dir(output_directory).expect("Cannot create output directory.");
+            } else if !output_directory.is_dir() {
+                panic!("`_site` is not a directory.")
+            }
+
+            convert_directory(&reg, pages, pages, output_directory);
+        }
     }
-
-    convert_directory(&reg, pages, pages, output_directory);
 
     Ok(())
 }

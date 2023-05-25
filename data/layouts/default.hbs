@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{{title}}</title>
+</head>
+<body>
+<h1>{{title}}</h1>
+{{#each posts}}
+    <li>
+        <a href="{{this.link}}">{{this.title}}</a>
+    </li>
+{{/each}}
+{{{content}}}
+</body>
+</html>
