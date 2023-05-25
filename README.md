@@ -17,6 +17,6 @@ cargo run -- build --input data
 - [x] Page creation in markdown
 - [x] Simple CLI usage
 - [ ] Looping over all directories from a template
-- [ ] CSS optimization
+- [ ] CSS and assets optimization
 - [ ] Integrated web server
 - [ ] Everything the future holds…

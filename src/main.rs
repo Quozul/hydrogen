@@ -1,16 +1,17 @@
 #![feature(let_chains)]
 
 mod cli;
+mod collections;
 mod front_matter;
 
 use crate::cli::{Cli, Commands};
-use crate::front_matter::{get_front_matter, FrontMatter};
+use crate::collections::{get_collections, Collections};
+use crate::front_matter::get_front_matter;
 use clap::Parser;
 use handlebars::Handlebars;
 use log::debug;
 use serde::Serialize;
 use serde_json::json;
-use std::collections::HashMap;
 use std::error::Error;
 use std::path::Path;
 
@@ -33,44 +34,19 @@ fn load_layouts(reg: &mut Handlebars, layout_path: &Path) {
     });
 }
 
-fn convert_directory(reg: &Handlebars, root: &Path, input: &Path, out: &Path) {
+fn convert_directory(
+    reg: &Handlebars,
+    root: &Path,
+    input: &Path,
+    out: &Path,
+    collections: &Collections,
+) {
     let entries = std::fs::read_dir(input).unwrap();
-    let entries2 = std::fs::read_dir(input).unwrap();
-    let mut collections = HashMap::<String, Vec<FrontMatter>>::new();
 
-    entries
-        .filter_map(|entry_result| {
-            if let Ok(entry) = entry_result && entry.path().is_dir() {
-                let path = entry.path();
-
-                if let Ok(entries) = path.read_dir() {
-                    let collection = entries.filter_map(|entry_result| {
-                        if let Ok(entry) = entry_result && entry.path().is_file() {
-                            let (front_matter, _) = get_front_matter(entry.path().as_path(), root);
-                            Some(front_matter)
-                        } else {
-                            None
-                        }
-                    })
-                        .collect::<Vec<_>>();
-
-                    let name = path.file_name().unwrap().to_str().unwrap();
-                    Some((String::from(name), collection))
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        })
-        .for_each(|(name, collection)| {
-            collections.insert(name, collection);
-        });
-
-    entries2.for_each(|entry| {
+    entries.for_each(|entry| {
         let path = entry.unwrap().path();
         if path.is_dir() {
-            convert_directory(reg, root, path.as_path(), out);
+            convert_directory(reg, root, path.as_path(), out, collections);
         } else if path.is_file() {
             let (front_matter, content) = get_front_matter(&path, root);
 
@@ -118,6 +94,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             let pages = pages_path.as_path();
             let layouts = layouts_path.as_path();
 
+            let collections = get_collections(pages);
+
             load_layouts(&mut reg, layouts);
 
             if !output_directory.exists() {
@@ -126,7 +104,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 panic!("`_site` is not a directory.")
             }
 
-            convert_directory(&reg, pages, pages, output_directory);
+            convert_directory(&reg, pages, pages, output_directory, &collections);
         }
     }
 

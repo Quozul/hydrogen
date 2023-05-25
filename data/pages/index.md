@@ -1,6 +1,6 @@
 ---
 title: Home
-layout: default
+layout: post_list
 ---
 
 Hello World!

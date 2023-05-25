@@ -11,6 +11,13 @@
     </li>
 {{/each}}
 <hr/>
+<h1>Posts</h1>
+{{#each collections.posts}}
+    <li>
+        <a href="{{this.permalink}}">{{this.title}}</a>
+    </li>
+{{/each}}
+<hr/>
 <h1>{{title}}</h1>
 {{{content}}}
 </body>
