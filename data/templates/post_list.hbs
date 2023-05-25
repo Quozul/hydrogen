@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+{{> head}}
+<body>
+<main>
+    <h1>Pages</h1>
+    {{#each collections.pages}}
+        <li>
+            <a href="{{this.permalink}}">{{this.title}}</a>
+        </li>
+    {{/each}}
+    <hr/>
+    <h1>Posts</h1>
+    {{#each collections.posts}}
+        <li>
+            <a href="{{this.permalink}}">{{this.title}}</a>
+        </li>
+    {{/each}}
+    <hr/>
+    <h1>{{title}}</h1>
+    {{{content}}}
+</main>
+</body>
+</html>

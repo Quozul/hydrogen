@@ -21,20 +21,19 @@ struct CollectionEntry {
     name: String,
 }
 
-fn load_layouts(reg: &mut Handlebars, layout_path: &Path) {
+fn register_templates(reg: &mut Handlebars, layout_path: &Path) {
     std::fs::read_dir(layout_path).unwrap().for_each(|entry| {
         let path = entry.unwrap().path();
         debug!("Loading layout {:?}", path);
         if path.is_file() {
             let name = path.file_stem().unwrap();
-            let template = std::fs::read_to_string(&path).unwrap();
-            reg.register_template_string(name.to_str().unwrap(), template)
+            reg.register_template_file(name.to_str().unwrap(), path.as_path())
                 .unwrap();
         }
     });
 }
 
-fn convert_directory(
+fn render_pages(
     reg: &Handlebars,
     root: &Path,
     input: &Path,
@@ -46,7 +45,7 @@ fn convert_directory(
     entries.for_each(|entry| {
         let path = entry.unwrap().path();
         if path.is_dir() {
-            convert_directory(reg, root, path.as_path(), out, collections);
+            render_pages(reg, root, path.as_path(), out, collections);
         } else if path.is_file() {
             let (front_matter, content) = get_front_matter(&path, root);
 
@@ -78,6 +77,29 @@ fn convert_directory(
     })
 }
 
+fn copy_assets(assets: &Path, root: &Path, output: &Path) {
+    if let Ok(read_dir) = assets.read_dir() {
+        for entry in read_dir {
+            if let Ok(asset) = entry {
+                let source = asset.path();
+
+                if source.is_file() {
+                    if let Ok(source_no_prefix) = source.strip_prefix(root) {
+                        let destination = output.join(source_no_prefix);
+                        println!("{:?} {:?}", source, destination);
+                        if let Some(parent) = destination.parent() && !parent.exists() {
+                            std::fs::create_dir_all(parent).unwrap();
+                        }
+                        std::fs::copy(source, destination).unwrap();
+                    }
+                } else if source.is_dir() {
+                    copy_assets(source.as_path(), root, output)
+                }
+            }
+        }
+    }
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
     let cli = Cli::parse();
@@ -89,22 +111,39 @@ fn main() -> Result<(), Box<dyn Error>> {
             let output_directory = output.as_path();
 
             let pages_path = input.join("pages");
-            let layouts_path = input.join("layouts");
+            let layouts_path = input.join("templates");
+            let static_path = input.join("assets");
 
             let pages = pages_path.as_path();
             let layouts = layouts_path.as_path();
+            let assets = static_path.as_path();
 
-            let collections = get_collections(pages);
+            register_templates(&mut reg, layouts);
 
-            load_layouts(&mut reg, layouts);
-
+            // Create output directory
             if !output_directory.exists() {
                 std::fs::create_dir(output_directory).expect("Cannot create output directory.");
             } else if !output_directory.is_dir() {
                 panic!("`_site` is not a directory.")
             }
 
-            convert_directory(&reg, pages, pages, output_directory, &collections);
+            let collections = get_collections(pages);
+
+            if let Ok(read_dir) = output_directory.read_dir() {
+                for result in read_dir {
+                    if let Ok(entry) = result {
+                        let path = entry.path();
+                        if path.is_dir() {
+                            std::fs::remove_dir_all(path).unwrap();
+                        } else if path.is_file() {
+                            std::fs::remove_file(path).unwrap();
+                        }
+                    }
+                }
+            }
+
+            copy_assets(assets, assets, output_directory);
+            render_pages(&reg, pages, pages, output_directory, &collections);
         }
     }
 

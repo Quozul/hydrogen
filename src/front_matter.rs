@@ -25,12 +25,12 @@ pub(crate) struct FrontMatter {
     pub(crate) permalink: String,
 }
 
-pub(crate) fn get_front_matter(file_path: &Path, input_path: &Path) -> (FrontMatter, String) {
+pub(crate) fn get_front_matter(file_path: &Path, root: &Path) -> (FrontMatter, String) {
     let content = std::fs::read_to_string(&file_path).unwrap();
 
     let output_path = String::from(
         file_path
-            .strip_prefix(input_path)
+            .strip_prefix(root)
             .unwrap()
             .with_extension("html")
             .to_str()
