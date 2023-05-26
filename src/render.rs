@@ -1,5 +1,5 @@
 use crate::collections::Collections;
-use crate::front_matter::get_front_matter;
+use crate::front_matter::parse_page;
 use crate::minifier::html::minify_html;
 use handlebars::Handlebars;
 use log::{debug, error};
@@ -22,7 +22,7 @@ pub(crate) fn render_pages(
                 } else if source.is_file() {
                     debug!("Rendering page {:?}…", source);
 
-                    let front_matter = get_front_matter(Some(collections.clone()), &source, root);
+                    let front_matter = parse_page(Some(collections.clone()), &source, root);
 
                     let destination = if front_matter.permalink.starts_with("/") {
                         out.join(&front_matter.permalink[1..])

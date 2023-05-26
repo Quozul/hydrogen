@@ -1,7 +1,7 @@
 use crate::collections::Collections;
-use crate::path_extension::has_extension;
-use log::{debug, error};
-use markdown::Options;
+use crate::path_extension::get_extension;
+use log::error;
+use markdown::{Constructs, Options, ParseOptions};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
@@ -25,28 +25,105 @@ impl Default for FrontMatterDeserializer {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub(crate) struct FrontMatter {
     pub(crate) layout: String,
-    pub(crate) title: String,
     pub(crate) permalink: String,
-    pub(crate) content: String,
-    pub(crate) collections: Option<Collections>,
+    title: String,
+    content: String,
+    collections: Option<Collections>,
 }
 
 fn get_rendered(file_path: &Path, data: String) -> String {
-    if has_extension(file_path, "md") {
-        match markdown::to_html_with_options(&*data, &Options::gfm()) {
-            Ok(result) => result,
-            Err(err) => {
-                error!("An error has occurred while rendering {:?}", err);
-                data
+    if let Some(extension) = get_extension(file_path) {
+        match extension.as_str() {
+            "md" => {
+                let options = Options {
+                    parse: ParseOptions {
+                        constructs: Constructs {
+                            frontmatter: true,
+                            ..Constructs::gfm()
+                        },
+                        ..ParseOptions::gfm()
+                    },
+                    ..Options::gfm()
+                };
+                match markdown::to_html_with_options(data.as_str(), &options) {
+                    Ok(result) => result,
+                    Err(err) => {
+                        error!("An error has occurred while rendering {:?}", err);
+                        data
+                    }
+                }
             }
+            "html" => {
+                let parts = data.splitn(3, "---");
+                if let Some(last) = parts.last() {
+                    last.to_string()
+                } else {
+                    data
+                }
+            }
+            _ => data,
         }
     } else {
-        debug!("File {:?} is not in markdown format", file_path);
         data
     }
 }
 
-pub(crate) fn get_front_matter(
+enum Serializer {
+    Yaml,
+    Toml,
+}
+
+fn get_front_matter_string(data: &String) -> Option<(String, Serializer)> {
+    let parts = if data.starts_with("---") {
+        Some((data.splitn(3, "---"), Serializer::Yaml))
+    } else if data.starts_with("+++") {
+        Some((data.splitn(3, "+++"), Serializer::Toml))
+    } else {
+        None
+    };
+
+    if let Some((mut parts, serializer)) = parts {
+        let _ = parts.next();
+
+        if let Some(header) = parts.next() {
+            let header_trimmed = header.trim();
+
+            if !header_trimmed.is_empty() {
+                Some((header_trimmed.to_string(), serializer))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    } else {
+        None
+    }
+}
+
+fn parse_front_matter_string(data: &String) -> Option<FrontMatterDeserializer> {
+    if let Some((front_matter_string, serializer)) = get_front_matter_string(data) {
+        match serializer {
+            Serializer::Toml => {
+                match toml::from_str::<FrontMatterDeserializer>(front_matter_string.as_str()) {
+                    Ok(parsed) => Some(parsed),
+                    Err(_) => None,
+                }
+            }
+            Serializer::Yaml => {
+                match serde_yaml::from_str::<FrontMatterDeserializer>(front_matter_string.as_str())
+                {
+                    Ok(parsed) => Some(parsed),
+                    Err(_) => None,
+                }
+            }
+        }
+    } else {
+        None
+    }
+}
+
+pub(crate) fn parse_page(
     collections: Option<Collections>,
     file_path: &Path,
     root: &Path,
@@ -70,52 +147,24 @@ pub(crate) fn get_front_matter(
         collections,
     };
 
-    if content.starts_with("---") {
-        let mut parts = content.splitn(3, "---");
-        let _ = parts.next();
+    let front_matter_deserialized = parse_front_matter_string(&content);
 
-        let header_trimmed = if let Some(header) = parts.next() {
-            let header_trimmed = header.trim();
+    match front_matter_deserialized {
+        Some(deserialized) => {
+            let rendered = get_rendered(file_path, content);
 
-            if !header_trimmed.is_empty() {
-                Some(header_trimmed)
-            } else {
-                None
-            }
-        } else {
-            None
-        };
+            let front_matter = FrontMatter {
+                layout: deserialized.layout.unwrap_or(default_front_matter.layout),
+                title: deserialized.title.unwrap_or(default_front_matter.title),
+                permalink: deserialized
+                    .permalink
+                    .unwrap_or(default_front_matter.permalink),
+                content: rendered,
+                collections: default_front_matter.collections,
+            };
 
-        let data = parts.next().unwrap().to_string();
-
-        match header_trimmed {
-            Some(x) => match serde_yaml::from_str::<FrontMatterDeserializer>(x) {
-                Ok(deserialized) => {
-                    let rendered = get_rendered(file_path, data);
-
-                    let front_matter = FrontMatter {
-                        layout: deserialized.layout.unwrap_or(default_front_matter.layout),
-                        title: deserialized.title.unwrap_or(default_front_matter.title),
-                        permalink: deserialized
-                            .permalink
-                            .unwrap_or(default_front_matter.permalink),
-                        content: rendered,
-                        collections: default_front_matter.collections,
-                    };
-
-                    front_matter
-                }
-                Err(_) => default_front_matter,
-            },
-            None => default_front_matter,
+            front_matter
         }
-    } else {
-        FrontMatter {
-            permalink: default_front_matter.permalink,
-            content: get_rendered(file_path, content),
-            title: default_front_matter.title,
-            layout: default_front_matter.layout,
-            collections: default_front_matter.collections,
-        }
+        None => default_front_matter,
     }
 }

@@ -2,7 +2,11 @@
 <ul>
     {{#each collections.pages}}
         <li>
-            <a {{#if (equals permalink ../permalink)}}class="active" {{else}}href="{{permalink}}"{{/if}}>{{title}}</a>
+            {{#if (equals permalink ../permalink)}}
+                <a class="active">{{title}}</a> (current)
+            {{else}}
+                <a href="{{permalink}}">{{title}}</a>
+            {{/if}}
         </li>
     {{/each}}
 </ul>

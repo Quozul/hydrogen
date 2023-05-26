@@ -1,4 +1,4 @@
-use crate::front_matter::{get_front_matter, FrontMatter};
+use crate::front_matter::{parse_page, FrontMatter};
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -9,7 +9,7 @@ fn get_entries(path: &Path, root: &Path) -> Option<(String, Vec<FrontMatter>)> {
         let collection = entries
             .filter_map(|entry_result| {
                 if let Ok(entry) = entry_result && entry.path().is_file() {
-                    let front_matter = get_front_matter(None, entry.path().as_path(), root);
+                    let front_matter = parse_page(None, entry.path().as_path(), root);
                     Some(front_matter)
                 } else {
                     None
