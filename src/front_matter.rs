@@ -1,5 +1,7 @@
 use crate::collections::Collections;
 use crate::has_extension::has_extension;
+use log::{debug, error};
+use markdown::Options;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
@@ -28,6 +30,21 @@ pub(crate) struct FrontMatter<'a> {
     pub(crate) permalink: String,
     pub(crate) content: String,
     pub(crate) collections: Option<&'a Collections<'a>>,
+}
+
+fn get_rendered(file_path: &Path, data: String) -> String {
+    if has_extension(file_path, "md") {
+        match markdown::to_html_with_options(&*data, &Options::gfm()) {
+            Ok(result) => result,
+            Err(err) => {
+                error!("An error has occurred while rendering {:?}", err);
+                data
+            }
+        }
+    } else {
+        debug!("File {:?} is not in markdown format", file_path);
+        data
+    }
 }
 
 pub(crate) fn get_front_matter<'a, 'b>(
@@ -75,11 +92,7 @@ pub(crate) fn get_front_matter<'a, 'b>(
         match header_trimmed {
             Some(x) => match serde_yaml::from_str::<FrontMatterDeserializer>(x) {
                 Ok(deserialized) => {
-                    let rendered = if has_extension(file_path, "md") {
-                        markdown::to_html(&*data)
-                    } else {
-                        data
-                    };
+                    let rendered = get_rendered(file_path, data);
 
                     let front_matter = FrontMatter::<'b> {
                         layout: deserialized.layout.unwrap_or(default_front_matter.layout),
@@ -98,6 +111,12 @@ pub(crate) fn get_front_matter<'a, 'b>(
             None => default_front_matter,
         }
     } else {
-        default_front_matter
+        FrontMatter {
+            permalink: format!("/{}", output_path),
+            content: get_rendered(file_path, content),
+            title: String::from(file_path.file_stem().unwrap().to_str().unwrap()),
+            layout: String::from("default"),
+            collections: None,
+        }
     }
 }

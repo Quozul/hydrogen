@@ -43,7 +43,7 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Build with cargo
-        run: cargo run -- build --input data
+        run: cargo run -- build --input docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
 

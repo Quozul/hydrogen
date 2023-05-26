@@ -3,9 +3,16 @@ use crate::collections::get_collections;
 use crate::register_templates::register_templates;
 use crate::render::render_pages;
 use handlebars::Handlebars;
+use log::error;
 use std::path::PathBuf;
+use std::process::exit;
 
 pub(crate) fn build(input: PathBuf, output: PathBuf) {
+    if !input.exists() || !input.is_dir() {
+        error!("{:?} does not exists or is not a directory.", input);
+        exit(1);
+    }
+
     let mut reg: Handlebars = Handlebars::new();
     let output_directory = output.as_path();
 
@@ -23,7 +30,8 @@ pub(crate) fn build(input: PathBuf, output: PathBuf) {
     if !output_directory.exists() {
         std::fs::create_dir(output_directory).expect("Cannot create output directory.");
     } else if !output_directory.is_dir() {
-        panic!("`_site` is not a directory.")
+        error!("{:?} is not a directory.", output);
+        exit(1);
     }
 
     let collections = get_collections(pages);
