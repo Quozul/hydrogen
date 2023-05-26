@@ -27,11 +27,12 @@ Checked features are implemented, others are planned.
 - [x] Page creation in markdown
 - [x] Simple CLI usage
 - [x] Looping over all directories from a template
+- [x] SCSS/SASS support
 - [ ] Automatic HTML meta tags generation in `<head>`
 - [ ] Assets optimization
+  - [x] HTML and CSS minification
   - [ ] Image compression
   - [ ] Remove unused classes from CSS
-  - [ ] HTML and CSS minification
 - [ ] Integrated web server
   - [ ] Development server with hot reload
   - [ ] Low footprint production-like server

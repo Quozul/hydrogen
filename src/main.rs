@@ -1,15 +1,20 @@
 #![feature(let_chains)]
 
+mod assets;
 mod cli;
 mod collections;
 mod front_matter;
+mod minifier;
 
 use crate::cli::{Cli, Commands};
 use crate::collections::{get_collections, Collections};
 use crate::front_matter::get_front_matter;
+use crate::minifier::html::minify_html;
 use clap::Parser;
 use handlebars::Handlebars;
 use log::{debug, error};
+
+use crate::assets::copy_assets;
 use serde::Serialize;
 use serde_json::json;
 use std::error::Error;
@@ -81,34 +86,12 @@ fn render_pages(
                                     .expect("Was not able to create parent directory.");
                             }
 
-                            std::fs::write(out_path, out_data).unwrap();
+                            std::fs::write(out_path, minify_html(out_data)).unwrap();
                         }
                         Err(err) => {
                             error!("Error while rendering file {}", err);
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-fn copy_assets(assets: &Path, root: &Path, output: &Path) {
-    if let Ok(read_dir) = assets.read_dir() {
-        for entry in read_dir {
-            if let Ok(asset) = entry {
-                let source = asset.path();
-
-                if source.is_file() {
-                    if let Ok(source_no_prefix) = source.strip_prefix(root) {
-                        let destination = output.join(source_no_prefix);
-                        if let Some(parent) = destination.parent() && !parent.exists() {
-                            std::fs::create_dir_all(parent).unwrap();
-                        }
-                        std::fs::copy(source, destination).unwrap();
-                    }
-                } else if source.is_dir() {
-                    copy_assets(source.as_path(), root, output)
                 }
             }
         }
