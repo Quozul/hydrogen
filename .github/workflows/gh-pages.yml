@@ -34,6 +34,14 @@ jobs:
         with:
           toolchain: nightly
           override: true
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Build with cargo
         run: cargo run -- build --input data
       - name: Upload artifact

@@ -10,6 +10,7 @@ pub(crate) struct Cli {
 
 #[derive(Subcommand)]
 pub(crate) enum Commands {
+    /// Build the site
     Build {
         /// Input directory
         #[arg(short, long, default_value = ".")]
@@ -19,4 +20,10 @@ pub(crate) enum Commands {
         #[arg(short, long, default_value = "_site")]
         output: PathBuf,
     },
+    /// Start a server with server-side rendering for development
+    Dev {},
+    /// Build and start a production server
+    Serve {},
+    /// Create a projects with default structure and files
+    Init {},
 }

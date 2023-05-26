@@ -16,7 +16,10 @@ cargo run -- build --input data
 - [x] Layout / templating using handlebars
 - [x] Page creation in markdown
 - [x] Simple CLI usage
+- [ ] Automatic HTML meta tags generation in `<head>`
 - [ ] Looping over all directories from a template
-- [ ] CSS and assets optimization
+- [ ] CSS and assets optimization (image compression, minification, removing unused classes)
 - [ ] Integrated web server
+- [ ] Incremental site building
+- [ ] Multithreaded site building
 - [ ] Everything the future holds…
