@@ -28,6 +28,7 @@ pub(crate) fn build(input: PathBuf, output: PathBuf) {
 
     let collections = get_collections(pages);
 
+    // Clear output directory
     if let Ok(read_dir) = output_directory.read_dir() {
         for result in read_dir {
             if let Ok(entry) = result {

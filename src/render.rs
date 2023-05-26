@@ -19,17 +19,21 @@ pub(crate) fn render_pages(
 
                 if source.is_dir() {
                     render_pages(reg, root, source.as_path(), out, collections);
-                } else if source.is_file() && let Ok(suffix) = source.strip_prefix(root) {
+                } else if source.is_file() {
                     debug!("Rendering page {:?}…", source);
 
                     let front_matter = get_front_matter(Some(collections), &source, root);
 
-                    let destination = out.join(suffix).with_extension("html");
-                    match reg
-                        .render(
-                            front_matter.layout.as_str(),
-                            &front_matter,
-                        ) {
+                    let destination = if front_matter.permalink.starts_with("/") {
+                        out.join(&front_matter.permalink[1..])
+                            .with_extension("html")
+                    } else {
+                        out.join(&front_matter.permalink).with_extension("html")
+                    };
+
+                    debug!("Writing to {:?}", destination);
+
+                    match reg.render(front_matter.layout.as_str(), &front_matter) {
                         Ok(out_data) => {
                             if let Some(parent) = destination.parent() && !parent.exists() {
                                 std::fs::create_dir_all(parent)
