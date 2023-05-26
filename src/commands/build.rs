@@ -14,17 +14,31 @@ pub(crate) fn build(input: PathBuf, output: PathBuf) {
         exit(1);
     }
 
-    let mut reg: Handlebars = Handlebars::new();
+    let pages_path = input.join("pages");
+    let pages = pages_path.as_path();
+
+    if !pages.exists() {
+        error!("No pages directory");
+        exit(1);
+    }
+
     let output_directory = output.as_path();
 
-    let pages_path = input.join("pages");
     let static_path = input.join("assets");
+    let templates_path = input.join("templates");
+    let scripts_path = input.join("scripts");
 
-    let pages = pages_path.as_path();
     let assets = static_path.as_path();
 
-    register_templates(&mut reg, input.join("templates"));
-    register_helpers(&mut reg, input.join("scripts"));
+    let mut reg: Handlebars = Handlebars::new();
+
+    if templates_path.exists() {
+        register_templates(&mut reg, templates_path);
+    }
+
+    if scripts_path.exists() {
+        register_helpers(&mut reg, scripts_path);
+    }
 
     // Create output directory
     if !output_directory.exists() {
@@ -50,6 +64,9 @@ pub(crate) fn build(input: PathBuf, output: PathBuf) {
         }
     }
 
-    copy_assets(assets, assets, output_directory);
+    if assets.exists() {
+        copy_assets(assets, assets, output_directory);
+    }
+
     render_pages(&reg, pages, pages, output_directory, collections);
 }
