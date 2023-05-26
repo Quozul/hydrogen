@@ -14,7 +14,7 @@ opt-level = 3
 clap = { version = "4.3.0", features = ["derive"] }
 env_logger = "0.10.0"
 grass = { version = "0.12.4", default-features = false }
-handlebars = "4.3.7"
+handlebars = { version = "4.3.7", features = ["rhai", "script_helper"] }
 log = "0.4.17"
 markdown = "1.0.0-alpha.9"
 regex = "1.8.3"

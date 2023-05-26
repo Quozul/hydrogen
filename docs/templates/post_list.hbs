@@ -2,23 +2,23 @@
 <html lang="en">
 {{> head}}
 <body>
-<main>
-    <h1>Pages</h1>
-    {{#each collections.pages}}
-        <li>
-            <a href="{{this.permalink}}">{{this.title}}</a>
-        </li>
-    {{/each}}
-    <hr/>
-    <h1>Posts</h1>
-    {{#each collections.posts}}
-        <li>
-            <a href="{{this.permalink}}">{{this.title}}</a>
-        </li>
-    {{/each}}
-    <hr/>
-    <h1>{{title}}</h1>
-    {{{content}}}
-</main>
+<div id="root">
+    <header>
+        {{> pages}}
+        <h1>Posts</h1>
+        <ul>
+            {{#each collections.posts}}
+                <li>
+                    <a href="{{permalink}}">{{title}}</a>
+                </li>
+            {{/each}}
+        </ul>
+        <hr/>
+    </header>
+    <main>
+        <h1>{{title}}</h1>
+        {{{content}}}
+    </main>
+</div>
 </body>
 </html>

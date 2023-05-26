@@ -1,5 +1,5 @@
 ---
-title: The start of the timestamp.
+title: The start of Unix time
 permalink: /posts/1970/01/01/timestamp-start.html
 ---
 

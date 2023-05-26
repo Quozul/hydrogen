@@ -5,8 +5,9 @@ mod cli;
 mod collections;
 mod commands;
 mod front_matter;
-mod has_extension;
 mod minifier;
+mod path_extension;
+mod register_helpers;
 mod register_templates;
 mod render;
 

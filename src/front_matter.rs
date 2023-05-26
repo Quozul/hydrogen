@@ -1,9 +1,8 @@
 use crate::collections::Collections;
-use crate::has_extension::has_extension;
+use crate::path_extension::has_extension;
 use log::{debug, error};
 use markdown::Options;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::path::Path;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -23,13 +22,13 @@ impl Default for FrontMatterDeserializer {
     }
 }
 
-#[derive(Serialize, Debug)]
-pub(crate) struct FrontMatter<'a> {
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub(crate) struct FrontMatter {
     pub(crate) layout: String,
     pub(crate) title: String,
     pub(crate) permalink: String,
     pub(crate) content: String,
-    pub(crate) collections: Option<&'a Collections<'a>>,
+    pub(crate) collections: Option<Collections>,
 }
 
 fn get_rendered(file_path: &Path, data: String) -> String {
@@ -47,11 +46,11 @@ fn get_rendered(file_path: &Path, data: String) -> String {
     }
 }
 
-pub(crate) fn get_front_matter<'a, 'b>(
-    collections: Option<&'b HashMap<String, Vec<FrontMatter<'b>>>>,
-    file_path: &'a Path,
-    root: &'b Path,
-) -> FrontMatter<'b> {
+pub(crate) fn get_front_matter(
+    collections: Option<Collections>,
+    file_path: &Path,
+    root: &Path,
+) -> FrontMatter {
     let content = std::fs::read_to_string(&file_path).unwrap();
 
     let output_path = String::from(
@@ -68,7 +67,7 @@ pub(crate) fn get_front_matter<'a, 'b>(
         content: content.clone(),
         title: String::from(file_path.file_stem().unwrap().to_str().unwrap()),
         layout: String::from("default"),
-        collections: None,
+        collections,
     };
 
     if content.starts_with("---") {
@@ -94,14 +93,14 @@ pub(crate) fn get_front_matter<'a, 'b>(
                 Ok(deserialized) => {
                     let rendered = get_rendered(file_path, data);
 
-                    let front_matter = FrontMatter::<'b> {
+                    let front_matter = FrontMatter {
                         layout: deserialized.layout.unwrap_or(default_front_matter.layout),
                         title: deserialized.title.unwrap_or(default_front_matter.title),
                         permalink: deserialized
                             .permalink
                             .unwrap_or(default_front_matter.permalink),
                         content: rendered,
-                        collections,
+                        collections: default_front_matter.collections,
                     };
 
                     front_matter
@@ -112,11 +111,11 @@ pub(crate) fn get_front_matter<'a, 'b>(
         }
     } else {
         FrontMatter {
-            permalink: format!("/{}", output_path),
+            permalink: default_front_matter.permalink,
             content: get_rendered(file_path, content),
-            title: String::from(file_path.file_stem().unwrap().to_str().unwrap()),
-            layout: String::from("default"),
-            collections: None,
+            title: default_front_matter.title,
+            layout: default_front_matter.layout,
+            collections: default_front_matter.collections,
         }
     }
 }

@@ -1,9 +1,9 @@
-use crate::has_extension::has_extension;
+use crate::path_extension::has_extension;
 use handlebars::Handlebars;
-use log::{debug, error};
-use std::path::Path;
+use log::{debug, error, warn};
+use std::path::PathBuf;
 
-pub(crate) fn register_templates(reg: &mut Handlebars, layout_path: &Path) {
+pub(crate) fn register_templates(reg: &mut Handlebars, layout_path: PathBuf) {
     if let Ok(read_dir) = layout_path.read_dir() {
         for result in read_dir {
             if let Ok(entry) = result {
@@ -17,6 +17,11 @@ pub(crate) fn register_templates(reg: &mut Handlebars, layout_path: &Path) {
                             error!("Error while loading template {}", err);
                         }
                     }
+                } else {
+                    warn!(
+                        "File {:?} is not a Handlebar template and will be ignored.",
+                        path
+                    );
                 }
             }
         }

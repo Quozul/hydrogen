@@ -10,7 +10,7 @@ pub(crate) fn render_pages(
     root: &Path,
     input: &Path,
     out: &Path,
-    collections: &Collections,
+    collections: Collections,
 ) {
     if let Ok(read_dir) = input.read_dir() {
         for result in read_dir {
@@ -18,11 +18,11 @@ pub(crate) fn render_pages(
                 let source = entry.path();
 
                 if source.is_dir() {
-                    render_pages(reg, root, source.as_path(), out, collections);
+                    render_pages(reg, root, source.as_path(), out, collections.clone());
                 } else if source.is_file() {
                     debug!("Rendering page {:?}…", source);
 
-                    let front_matter = get_front_matter(Some(collections), &source, root);
+                    let front_matter = get_front_matter(Some(collections.clone()), &source, root);
 
                     let destination = if front_matter.permalink.starts_with("/") {
                         out.join(&front_matter.permalink[1..])

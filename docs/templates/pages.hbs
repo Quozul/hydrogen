@@ -1,0 +1,9 @@
+<h1>Pages</h1>
+<ul>
+    {{#each collections.pages}}
+        <li>
+            <a {{#if (equals permalink ../permalink)}}class="active" {{else}}href="{{permalink}}"{{/if}}>{{title}}</a>
+        </li>
+    {{/each}}
+</ul>
+<hr/>

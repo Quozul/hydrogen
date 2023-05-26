@@ -1,5 +1,6 @@
 use crate::assets::copy_assets;
 use crate::collections::get_collections;
+use crate::register_helpers::register_helpers;
 use crate::register_templates::register_templates;
 use crate::render::render_pages;
 use handlebars::Handlebars;
@@ -17,14 +18,13 @@ pub(crate) fn build(input: PathBuf, output: PathBuf) {
     let output_directory = output.as_path();
 
     let pages_path = input.join("pages");
-    let layouts_path = input.join("templates");
     let static_path = input.join("assets");
 
     let pages = pages_path.as_path();
-    let layouts = layouts_path.as_path();
     let assets = static_path.as_path();
 
-    register_templates(&mut reg, layouts);
+    register_templates(&mut reg, input.join("templates"));
+    register_helpers(&mut reg, input.join("scripts"));
 
     // Create output directory
     if !output_directory.exists() {
@@ -51,5 +51,5 @@ pub(crate) fn build(input: PathBuf, output: PathBuf) {
     }
 
     copy_assets(assets, assets, output_directory);
-    render_pages(&reg, pages, pages, output_directory, &collections);
+    render_pages(&reg, pages, pages, output_directory, collections);
 }

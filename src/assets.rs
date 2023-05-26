@@ -1,5 +1,5 @@
-use crate::has_extension::get_extension;
 use crate::minifier::css::minify_css;
+use crate::path_extension::get_extension;
 use log::error;
 use std::path::Path;
 
@@ -7,7 +7,8 @@ fn handle_asset(extension: &str, source: &Path, destination: &Path) {
     match extension {
         "css" => match std::fs::read_to_string(source) {
             Ok(input) => {
-                if let Err(err) = std::fs::write(destination, minify_css(input)) {
+                let minified = minify_css(input);
+                if !minified.is_empty() && let Err(err) = std::fs::write(destination, minified) {
                     error!("Cannot write asset {}", err);
                 }
             }
@@ -15,10 +16,9 @@ fn handle_asset(extension: &str, source: &Path, destination: &Path) {
         },
 
         "scss" | "sass" => match grass::from_path(source, &grass::Options::default()) {
-            Ok(output) => {
-                if let Err(err) =
-                    std::fs::write(destination.with_extension("css"), minify_css(output))
-                {
+            Ok(css) => {
+                let minified = minify_css(css);
+                if !minified.is_empty() && let Err(err) = std::fs::write(destination.with_extension("css"), minified) {
                     error!("Cannot write asset {}", err);
                 }
             }

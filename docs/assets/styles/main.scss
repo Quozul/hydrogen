@@ -1,10 +1,12 @@
+@import "variables";
+
 body {
     margin: 0;
-    background-color: #002b36;
-    color: #839496;
+    background-color: $base03;
+    color: $base0;
     font-family: 'Fira Code', monospace;
 
-    main {
+    #root {
         max-width: 500px;
         margin: auto;
         padding: 1rem;
@@ -16,9 +18,19 @@ p {
 }
 
 a {
-    color: #268bd2;
+    color: $blue;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+
+    &:hover:not(.active) {
+        background-color: $base02;
+    }
+
+    &.active {
+        color: $base1;
+    }
 }
 
 h1, h2, h3, h4, h5, h6 {
-    color: #93a1a1;
+    color: $base1;
 }

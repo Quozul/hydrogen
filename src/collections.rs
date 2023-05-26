@@ -2,9 +2,9 @@ use crate::front_matter::{get_front_matter, FrontMatter};
 use std::collections::HashMap;
 use std::path::Path;
 
-pub(crate) type Collections<'a> = HashMap<String, Vec<FrontMatter<'a>>>;
+pub(crate) type Collections = HashMap<String, Vec<FrontMatter>>;
 
-fn get_entries<'a, 'b>(path: &'a Path, root: &'b Path) -> Option<(String, Vec<FrontMatter<'b>>)> {
+fn get_entries(path: &Path, root: &Path) -> Option<(String, Vec<FrontMatter>)> {
     if let Ok(entries) = path.read_dir() {
         let collection = entries
             .filter_map(|entry_result| {

@@ -29,14 +29,14 @@ Checked features are implemented, others are planned in order of priority.
 - [x] Simple CLI usage
 - [x] Looping over all directories from a template (to improve)
 - [x] SCSS/SASS support
-- [ ] Automatic HTML meta tags generation in `<head>`
+- [x] Custom Handlebars' helpers written in [rhai](https://rhai.rs/)
+- [ ] Automatic HTML meta tags generation in `<head>` inspired by [jekyll-seo-tag](https://github.com/jekyll/jekyll-seo-tag)
 - [ ] Assets optimization
   - [x] HTML and CSS minification (to improve)
   - [ ] Rename assets using a hash for better caching
   - [ ] Image compression
   - [ ] Remove unused classes from CSS
 - [ ] Docker images
-- [ ] Custom Handlebars' helpers written in [rhai](https://rhai.rs/)
 - [ ] Use Handlebars' partials in markdown pages
 - [ ] Integrated web server
   - [ ] Development server with hot reload

@@ -15,3 +15,11 @@ pub(crate) fn get_extension(path: &Path) -> Option<String> {
         None
     }
 }
+
+pub(crate) fn file_stem(path: &Path) -> Option<String> {
+    if let Some(os_file_stem) = path.file_stem() && let Some(file_stem) = os_file_stem.to_str() {
+        Some(String::from(file_stem))
+    } else {
+        None
+    }
+}
