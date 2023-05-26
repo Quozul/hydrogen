@@ -29,7 +29,7 @@ fn register_templates(reg: &mut Handlebars, layout_path: &Path) {
 
                 if path.is_file() && let Some(extension) = path.extension() && extension == "hbs" {
                     if let Some(os_name) = path.file_stem() && let Some(name) = os_name.to_str() {
-                        debug!("Loading template '{:?}'...", name);
+                        debug!("Loading template '{:?}'…", name);
 
                         if let Err(err) = reg.register_template_file(name, path.as_path()) {
                             error!("Error while loading template {}", err);
@@ -55,31 +55,37 @@ fn render_pages(
 
                 if path.is_dir() {
                     render_pages(reg, root, path.as_path(), out, collections);
-                } else if path.is_file() {
+                } else if path.is_file() && let Some(os_extension) = path.extension() && let Some(extension) = os_extension.to_str() && let Ok(suffix) = path.strip_prefix(root) {
+                    debug!("Rendering page {:?}…", path);
+
                     let (front_matter, content) = get_front_matter(&path, root);
 
-                    if let Ok(suffix) = path.strip_prefix(root) {
-                        debug!("Rendering page {:?}", path);
+                    let rendered = match extension {
+                        "md" => markdown::to_html(&*content),
+                        _ => content,
+                    };
 
-                        let rendered = markdown::to_html(&*content);
-                        let out_path = out.join(suffix).with_extension("html");
-                        let out_data = reg
-                            .render(
-                                front_matter.layout.as_str(),
-                                &json!({
-                                    "title": front_matter.title,
-                                    "content": rendered,
-                                    "collections": collections,
-                                }),
-                            )
-                            .unwrap();
+                    let out_path = out.join(suffix).with_extension("html");
+                    match reg
+                        .render(
+                            front_matter.layout.as_str(),
+                            &json!({
+                                "title": front_matter.title,
+                                "content": rendered,
+                                "collections": collections,
+                            }),
+                        ) {
+                        Ok(out_data) => {
+                            if let Some(parent) = out_path.parent() && !parent.exists() {
+                                std::fs::create_dir_all(parent)
+                                    .expect("Was not able to create parent directory.");
+                            }
 
-                        if let Some(parent) = out_path.parent() && !parent.exists() {
-                            std::fs::create_dir_all(parent)
-                                .expect("Was not able to create parent directory.");
+                            std::fs::write(out_path, out_data).unwrap();
                         }
-
-                        std::fs::write(out_path, out_data).unwrap();
+                        Err(err) => {
+                            error!("Error while rendering file {}", err);
+                        }
                     }
                 }
             }
