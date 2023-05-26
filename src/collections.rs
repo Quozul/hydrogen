@@ -2,18 +2,18 @@ use crate::front_matter::{get_front_matter, FrontMatter};
 use std::collections::HashMap;
 use std::path::Path;
 
-pub(crate) type Collections = HashMap<String, Vec<FrontMatter>>;
+pub(crate) type Collections<'a> = HashMap<String, Vec<FrontMatter<'a>>>;
 
-pub(crate) fn get_entries(path: &Path, root: &Path) -> Option<(String, Vec<FrontMatter>)> {
+fn get_entries<'a, 'b>(path: &'a Path, root: &'b Path) -> Option<(String, Vec<FrontMatter<'b>>)> {
     if let Ok(entries) = path.read_dir() {
         let collection = entries
             .filter_map(|entry_result| {
                 if let Ok(entry) = entry_result && entry.path().is_file() {
-                let (front_matter, _) = get_front_matter(entry.path().as_path(), root);
-                Some(front_matter)
-            } else {
-                None
-            }
+                    let front_matter = get_front_matter(None, entry.path().as_path(), root);
+                    Some(front_matter)
+                } else {
+                    None
+                }
             })
             .collect::<Vec<_>>();
 

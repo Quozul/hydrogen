@@ -1,3 +1,4 @@
+use crate::has_extension::get_extension;
 use crate::minifier::css::minify_css;
 use log::error;
 use std::path::Path;
@@ -42,8 +43,8 @@ pub(crate) fn copy_assets(assets: &Path, root: &Path, output: &Path) {
                         if let Some(parent) = destination.parent() && !parent.exists() {
                             std::fs::create_dir_all(parent).unwrap();
                         }
-                        if let Some(os_extension) = source.extension() && let Some(extension) = os_extension.to_str() {
-                            handle_asset(extension, &source, &destination);
+                        if let Some(extension) = get_extension(&source) {
+                            handle_asset(&*extension, &source, &destination);
                         }
                     }
                 } else if source.is_dir() {

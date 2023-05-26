@@ -21,24 +21,25 @@ hydrogen build --input data
 ```
 
 ## Features
-Checked features are implemented, others are planned.
+Checked features are implemented, others are planned in order of priority.
 
 - [x] Templating using handlebars
 - [x] Page creation in markdown
 - [x] Simple CLI usage
-- [x] Looping over all directories from a template
+- [x] Looping over all directories from a template (to improve)
 - [x] SCSS/SASS support
 - [ ] Automatic HTML meta tags generation in `<head>`
 - [ ] Assets optimization
-  - [x] HTML and CSS minification
+  - [x] HTML and CSS minification (to improve)
+  - [ ] Rename assets using a hash for better caching
   - [ ] Image compression
   - [ ] Remove unused classes from CSS
-- [ ] Integrated web server
-  - [ ] Development server with hot reload
-  - [ ] Low footprint production-like server
 - [ ] Docker images
 - [ ] Custom helpers written in [rhai](https://rhai.rs/)
 - [ ] Use Handlebars' partials in markdown pages
+- [ ] Integrated web server
+  - [ ] Development server with hot reload
+  - [ ] Low footprint production-like server
 - [ ] Building performance (only if it gets too slow on single thread)
   - [ ] Incremental building
   - [ ] Multithreaded building

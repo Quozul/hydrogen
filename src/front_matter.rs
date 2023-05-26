@@ -1,4 +1,7 @@
+use crate::collections::Collections;
+use crate::has_extension::has_extension;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::Path;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -19,13 +22,19 @@ impl Default for FrontMatterDeserializer {
 }
 
 #[derive(Serialize, Debug)]
-pub(crate) struct FrontMatter {
+pub(crate) struct FrontMatter<'a> {
     pub(crate) layout: String,
     pub(crate) title: String,
     pub(crate) permalink: String,
+    pub(crate) content: String,
+    pub(crate) collections: Option<&'a Collections<'a>>,
 }
 
-pub(crate) fn get_front_matter(file_path: &Path, root: &Path) -> (FrontMatter, String) {
+pub(crate) fn get_front_matter<'a, 'b>(
+    collections: Option<&'b HashMap<String, Vec<FrontMatter<'b>>>>,
+    file_path: &'a Path,
+    root: &'b Path,
+) -> FrontMatter<'b> {
     let content = std::fs::read_to_string(&file_path).unwrap();
 
     let output_path = String::from(
@@ -39,8 +48,10 @@ pub(crate) fn get_front_matter(file_path: &Path, root: &Path) -> (FrontMatter, S
 
     let default_front_matter = FrontMatter {
         permalink: format!("/{}", output_path),
+        content: content.clone(),
         title: String::from(file_path.file_stem().unwrap().to_str().unwrap()),
         layout: String::from("default"),
+        collections: None,
     };
 
     if content.starts_with("---") {
@@ -64,21 +75,29 @@ pub(crate) fn get_front_matter(file_path: &Path, root: &Path) -> (FrontMatter, S
         match header_trimmed {
             Some(x) => match serde_yaml::from_str::<FrontMatterDeserializer>(x) {
                 Ok(deserialized) => {
-                    let front_matter = FrontMatter {
+                    let rendered = if has_extension(file_path, "md") {
+                        markdown::to_html(&*data)
+                    } else {
+                        data
+                    };
+
+                    let front_matter = FrontMatter::<'b> {
                         layout: deserialized.layout.unwrap_or(default_front_matter.layout),
                         title: deserialized.title.unwrap_or(default_front_matter.title),
                         permalink: deserialized
                             .permalink
                             .unwrap_or(default_front_matter.permalink),
+                        content: rendered,
+                        collections,
                     };
 
-                    (front_matter, data)
+                    front_matter
                 }
-                Err(_) => (default_front_matter, data),
+                Err(_) => default_front_matter,
             },
-            None => (default_front_matter, data),
+            None => default_front_matter,
         }
     } else {
-        (default_front_matter, content)
+        default_front_matter
     }
 }
