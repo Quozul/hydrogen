@@ -253,6 +253,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 
 [[package]]
+name = "hydrogen"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "env_logger",
+ "handlebars",
+ "log",
+ "markdown",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+]
+
+[[package]]
 name = "indexmap"
 version = "1.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -499,20 +513,6 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "digest",
-]
-
-[[package]]
-name = "static-site-gen"
-version = "0.1.0"
-dependencies = [
- "clap",
- "env_logger",
- "handlebars",
- "log",
- "markdown",
- "serde",
- "serde_json",
- "serde_yaml",
 ]
 
 [[package]]

@@ -1,25 +1,44 @@
-# Static Site Generator _thing_
-I do not have a name for this project yet.
+# Hydrogen
+Hydrogen `/ˈhaɪ.drə.dʒən/`, static site generator simple but powerful just like the hydrogen element.
 
-## Description
+The aim of the project is to make a fast and easy to use with batteries included site generator.
+
+## Installation
+1. Clone the repository
+   ```shell
+   git clone https://github.com/Quozul/hydrogen.git
+   ```
+2. Install using `cargo`
+   ```shell
+   cargo install --path .
+   ```
 
 ## Usage
-You currently need to have `cargo` installed to run the project.
-
 Here is a example command to get you started:
 
 ```shell
-cargo run -- build --input data
+hydrogen build --input data
 ```
 
 ## Features
-- [x] Layout / templating using handlebars
+Checked features are implemented, others are planned.
+
+- [x] Templating using handlebars
 - [x] Page creation in markdown
 - [x] Simple CLI usage
+- [x] Looping over all directories from a template
 - [ ] Automatic HTML meta tags generation in `<head>`
-- [ ] Looping over all directories from a template
-- [ ] CSS and assets optimization (image compression, minification, removing unused classes)
+- [ ] Assets optimization
+  - [ ] Image compression
+  - [ ] Remove unused classes from CSS
+  - [ ] HTML and CSS minification
 - [ ] Integrated web server
-- [ ] Incremental site building
-- [ ] Multithreaded site building
+  - [ ] Development server with hot reload
+  - [ ] Low footprint production-like server
+- [ ] Docker images
+- [ ] Custom helpers written in [rhai](https://rhai.rs/)
+- [ ] Use Handlebars' partials in markdown pages
+- [ ] Building performance (only if it gets too slow on single thread)
+  - [ ] Incremental building
+  - [ ] Multithreaded building
 - [ ] Everything the future holds…
